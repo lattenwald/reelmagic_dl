@@ -69,40 +69,42 @@ defmodule Reelmagic.Encoder do
     to = "#{Path.rootname(from)}.mp4"
 
     if File.exists?(to) do
-      Logger.debug("'#{to}' already exists, skipping recoding")
-    else
-      Logger.debug("recoding '#{from} to '#{to}")
+      Logger.debug("'#{to}' already exists, removing")
 
-      %{status: 0} =
-        Porcelain.exec(
-          "mencoder",
-          [
-            from,
-            "-idx",
-            "-oac",
-            "lavc",
-            "-ovc",
-            "x264",
-            "-x264encopts",
-            "threads=4",
-            "-lavcopts",
-            "acodec=ac3",
-            "-vf",
-            "scale=-2:720",
-            "-of",
-            "lavf",
-            "-lavfopts",
-            "format=mpg",
-            "-o",
-            to
-          ]
-        )
-
-      Logger.debug("finished recoding to '#{to}'")
-
-      Logger.debug("removing #{from}")
-      File.rm!(from)
+      File.rm!(to)
     end
+
+    Logger.debug("recoding '#{from} to '#{to}")
+
+    %{status: 0} =
+      Porcelain.exec(
+        "mencoder",
+        [
+          from,
+          "-idx",
+          "-oac",
+          "lavc",
+          "-ovc",
+          "x264",
+          "-x264encopts",
+          "threads=4",
+          "-lavcopts",
+          "acodec=ac3",
+          "-vf",
+          "scale=-2:720",
+          "-of",
+          "lavf",
+          "-lavfopts",
+          "format=mpg",
+          "-o",
+          to
+        ]
+      )
+
+    Logger.debug("finished recoding to '#{to}'")
+
+    Logger.debug("removing #{from}")
+    File.rm!(from)
 
     Agent.update(__MODULE__, fn state -> %{state | recoding: false} end)
 

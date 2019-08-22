@@ -14,6 +14,10 @@ This application downloads videos from playlist and recodes them to something:72
 
 ## Installation
 
+Copy `reelmagic_dl.ex` to somewhere in `$PATH`, or install compile from source.
+
+## Compiling
+
 This application uses `mencoder` for recoding, with `libavformat`, `libavcodec` (these are part of `ffmpeg` installation) and `libx264` being used for encoding and packaging. Have these installed.
 
 This application was tested with Elixir 1.9 on GNU/Linux, specifically Arch. You are encouraged to test and fix if you want to use it on another platforms.
