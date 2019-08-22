@@ -1,0 +1,65 @@
+defmodule Reelmagic do
+  require Logger
+
+  def run(opts) do
+    Reelmagic.Encoder.start_link()
+
+    playlist = opts[:playlist]
+    dir = opts[:to]
+
+    if File.exists?(dir) do
+      %{type: type} = File.stat!(dir)
+
+      if type == :directory do
+        input = IO.gets("Directory '#{dir}' already exists, continue? (Y/n)")
+
+        cond do
+          input == "\n" ->
+            :ok
+
+          Regex.match?(~r/^y/i, input) ->
+            :ok
+
+          true ->
+            System.halt(0)
+        end
+      else
+        IO.puts("Destination '#{dir}' already exists and it's not a directory")
+        System.halt(1)
+      end
+    else
+      File.mkdir_p!(dir)
+    end
+
+    File.cd!(dir)
+
+    videos = Reelmagic.Dl.videos(playlist)
+
+    videos
+    |> Task.async_stream(
+      fn v ->
+        Reelmagic.Dl.download(v)
+        |> case do
+          {:ok, fname} ->
+            Logger.debug("downloaded file #{fname}, recoding!")
+            Reelmagic.Encoder.recode(fname)
+
+          _other ->
+            Logger.warn("failed downloading #{inspect(v)}")
+        end
+      end,
+      max_concurrency: 5,
+      timeout: :infinity
+    )
+    |> Stream.run()
+
+    Reelmagic.Encoder.set_waiter(self())
+
+    receive do
+      :done -> :ok
+    after
+      1000 * 3600 * 5 ->
+        "I waited long enough"
+    end
+  end
+end
