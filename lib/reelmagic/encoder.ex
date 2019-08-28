@@ -66,48 +66,60 @@ defmodule Reelmagic.Encoder do
   end
 
   def recode!(from) do
-    to = "#{Path.rootname(from)}.mp4"
+    to = to(from)
 
-    if File.exists?(to) do
-      Logger.debug("'#{to}' already exists, removing")
+    skip =
+      if File.exists?(to) do
+        if File.exists?(from) do
+          Logger.debug("'#{to}' already exists, removing")
+          File.rm!(to)
+          false
+        else
+          Logger.debug("'#{to}' already recoded, skipping")
+          true
+        end
+      else
+        false
+      end
 
-      File.rm!(to)
+    if !skip do
+      Logger.debug("recoding '#{from} to '#{to}")
+
+      %{status: 0} =
+        Porcelain.exec(
+          "mencoder",
+          [
+            from,
+            "-idx",
+            "-oac",
+            "lavc",
+            "-ovc",
+            "x264",
+            "-x264encopts",
+            "threads=4",
+            "-lavcopts",
+            "acodec=ac3",
+            "-vf",
+            "scale=-2:720",
+            "-of",
+            "lavf",
+            "-lavfopts",
+            "format=mpg",
+            "-o",
+            to
+          ]
+        )
+
+      Logger.debug("finished recoding to '#{to}'")
+
+      Logger.debug("removing #{from}")
+      File.rm!(from)
     end
-
-    Logger.debug("recoding '#{from} to '#{to}")
-
-    %{status: 0} =
-      Porcelain.exec(
-        "mencoder",
-        [
-          from,
-          "-idx",
-          "-oac",
-          "lavc",
-          "-ovc",
-          "x264",
-          "-x264encopts",
-          "threads=4",
-          "-lavcopts",
-          "acodec=ac3",
-          "-vf",
-          "scale=-2:720",
-          "-of",
-          "lavf",
-          "-lavfopts",
-          "format=mpg",
-          "-o",
-          to
-        ]
-      )
-
-    Logger.debug("finished recoding to '#{to}'")
-
-    Logger.debug("removing #{from}")
-    File.rm!(from)
 
     Agent.update(__MODULE__, fn state -> %{state | recoding: false} end)
 
     check_queue()
   end
+
+  def to(from), do: "#{Path.rootname(from)}.mp4"
 end
