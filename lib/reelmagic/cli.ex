@@ -2,8 +2,10 @@ defmodule Reelmagic.CLI do
   require Logger
 
   @moduledoc """
-  Usage: `reelmagic_dl.ex --playlist 78hpp7h24y --to 'Focus on Rings'
+  Usage: `reelmagic_dl.ex --playlist 78hpp7h24y --to 'Focus on Rings' --concurrency 3
   """
+
+  @default_concurrency 3
 
   def main(argv) do
     argv
@@ -15,8 +17,8 @@ defmodule Reelmagic.CLI do
     {parsed, _rest, invalid} =
       OptionParser.parse(
         argv,
-        switches: [help: :boolean, playlist: :string, to: :string],
-        aliases: [h: :help, p: :playlist, t: :to]
+        switches: [help: :boolean, playlist: :string, to: :string, concurrency: :integer],
+        aliases: [h: :help, p: :playlist, t: :to, c: :concurrency]
       )
 
     cond do
@@ -34,6 +36,7 @@ defmodule Reelmagic.CLI do
 
       true ->
         parsed
+        |> Keyword.put_new(:concurrency, @default_concurrency)
     end
   end
 

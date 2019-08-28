@@ -6,6 +6,7 @@ defmodule Reelmagic do
 
     playlist = opts[:playlist]
     dir = opts[:to]
+    concurrency = opts[:concurrency]
 
     if File.exists?(dir) do
       %{type: type} = File.stat!(dir)
@@ -48,7 +49,7 @@ defmodule Reelmagic do
             Logger.warn("failed downloading #{inspect(v)}")
         end
       end,
-      max_concurrency: 5,
+      max_concurrency: concurrency,
       timeout: :infinity
     )
     |> Stream.run()
