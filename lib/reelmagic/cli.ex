@@ -3,6 +3,14 @@ defmodule Reelmagic.CLI do
 
   @moduledoc """
   Usage: `reelmagic_dl.ex --playlist 78hpp7h24y --to 'Focus on Rings' --concurrency 3
+
+  Options:
+
+    --help -h -- show this help
+    --playlist -p [string] -- required, Wistia playlist ID
+    --to -t [path] -- required, directory to save videos into
+    --concurrency -c [int] -- optional, number of videos to be downloaded simultaneously, default 3
+    --no-recode -- optional, don't recode, just download videos
   """
 
   @default_concurrency 3
@@ -17,8 +25,14 @@ defmodule Reelmagic.CLI do
     {parsed, _rest, invalid} =
       OptionParser.parse(
         argv,
-        switches: [help: :boolean, playlist: :string, to: :string, concurrency: :integer],
-        aliases: [h: :help, p: :playlist, t: :to, c: :concurrency]
+        switches: [
+          help: :boolean,
+          playlist: :string,
+          to: :string,
+          concurrency: :integer,
+          recode: :boolean
+        ],
+        aliases: [h: :help, p: :playlist, t: :to, c: :concurrency, r: :recode]
       )
 
     cond do
@@ -37,6 +51,7 @@ defmodule Reelmagic.CLI do
       true ->
         parsed
         |> Keyword.put_new(:concurrency, @default_concurrency)
+        |> Keyword.put_new(:recode, true)
     end
   end
 

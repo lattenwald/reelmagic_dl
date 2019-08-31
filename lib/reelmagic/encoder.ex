@@ -96,7 +96,7 @@ defmodule Reelmagic.Encoder do
             "-ovc",
             "x264",
             "-x264encopts",
-            "threads=4",
+            "threads=4:log=0",
             "-lavcopts",
             "acodec=ac3",
             "-vf",

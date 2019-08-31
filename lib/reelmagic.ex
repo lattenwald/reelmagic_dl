@@ -7,6 +7,7 @@ defmodule Reelmagic do
     playlist = opts[:playlist]
     dir = opts[:to]
     concurrency = opts[:concurrency]
+    recode = opts[:recode]
 
     if File.exists?(dir) do
       %{type: type} = File.stat!(dir)
@@ -42,8 +43,8 @@ defmodule Reelmagic do
         Reelmagic.Dl.download(v)
         |> case do
           {:ok, fname} ->
-            Logger.debug("downloaded file #{fname}, recoding!")
-            Reelmagic.Encoder.recode(fname)
+            Logger.debug("downloaded file #{fname}!")
+            if recode, do: Reelmagic.Encoder.recode(fname)
 
           _other ->
             Logger.warn("failed downloading #{inspect(v)}")
