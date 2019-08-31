@@ -30,3 +30,8 @@ mix escript.build
 ```
 
 These commands will leave you with a `reelmagic_dl.ex` escript binary in your working directory. Run it without options or with `--help`.
+
+## Companion userscript
+
+Having [this script](https://github.com/lattenwald/user.js/blob/master/reelmagic.user.js) installed, you can press `q` at a reelmagicmagazine page and an
+alert window with command to download this playlist pops up.
