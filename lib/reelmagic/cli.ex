@@ -2,7 +2,7 @@ defmodule Reelmagic.CLI do
   require Logger
 
   @moduledoc """
-  Usage: `reelmagic_dl.ex --playlist 78hpp7h24y --to 'Focus on Rings' --concurrency 3
+  Usage: `reelmagic_dl.ex --playlist 78hpp7h24y --to 'Focus on Rings' --concurrency 3`
 
   Options:
 
@@ -10,6 +10,7 @@ defmodule Reelmagic.CLI do
     --playlist -p [string] -- required, Wistia playlist ID
     --to -t [path] -- required, directory to save videos into
     --concurrency -c [int] -- optional, number of videos to be downloaded simultaneously, default 3
+    --keep -k -- keep original files, which by default are removed after recoding
     --no-recode -- optional, don't recode, just download videos
     --ffmpeg or --mencoder -- choose one of mencoder (with x264 & ac3) or ffmpeg (with xvid & ac3), default is ffmpeg
   """
@@ -33,9 +34,10 @@ defmodule Reelmagic.CLI do
           concurrency: :integer,
           recode: :boolean,
           mencoder: :boolean,
-          ffmpeg: :boolean
+          ffmpeg: :boolean,
+          keep: :boolean
         ],
-        aliases: [h: :help, p: :playlist, t: :to, c: :concurrency, r: :recode]
+        aliases: [h: :help, p: :playlist, t: :to, c: :concurrency, r: :recode, k: :keep]
       )
 
     cond do

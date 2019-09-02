@@ -6,6 +6,7 @@ defmodule Reelmagic do
     dir = opts[:to]
     concurrency = opts[:concurrency]
     recode = opts[:recode]
+    keep_original = opts[:keep]
 
     encoder =
       cond do
@@ -14,7 +15,7 @@ defmodule Reelmagic do
         true -> raise "No encoder specified"
       end
 
-    Reelmagic.Encoder.start_link(encoder)
+    Reelmagic.Encoder.start_link(encoder, keep_original)
 
     if File.exists?(dir) do
       %{type: type} = File.stat!(dir)

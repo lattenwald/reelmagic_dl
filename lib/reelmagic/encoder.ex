@@ -1,13 +1,13 @@
 defmodule Reelmagic.Encoder do
   require Logger
 
-  defstruct queue: nil, recoding: false, waiter: nil, encoder: nil
+  defstruct queue: nil, recoding: false, waiter: nil, encoder: nil, keep_original: false
 
-  def start_link(encoder),
+  def start_link(encoder, keep_original \\ false),
     do:
       Agent.start_link(
         fn ->
-          %__MODULE__{queue: :queue.new(), encoder: encoder}
+          %__MODULE__{queue: :queue.new(), encoder: encoder, keep_original: keep_original}
         end,
         name: __MODULE__
       )
@@ -67,31 +67,29 @@ defmodule Reelmagic.Encoder do
 
   def recode!(from) do
     to = to(from)
-    encoder = Agent.get(__MODULE__, fn %{encoder: e} -> e end)
+    tmp = tmp(from)
+    {encoder, keep} = Agent.get(__MODULE__, fn %{encoder: e, keep_original: k} -> {e, k} end)
 
-    skip =
-      if File.exists?(to) do
-        if File.exists?(from) do
-          Logger.debug("'#{to}' already exists, removing")
-          File.rm!(to)
-          false
-        else
-          Logger.debug("'#{to}' already recoded, skipping")
-          true
-        end
-      else
-        false
-      end
-
-    if !skip do
+    File.exists? to do
+      Logger.debug("'#{to}' already recoded, skipping")
+    else
       Logger.debug("recoding '#{from} to '#{to}")
 
-      {cmd, args} = apply(__MODULE__, encoder, [from, to])
+      case File.rm(tmp) do
+        :ok -> :ok
+        {:error, :enoent} -> :ok
+        other -> raise "Error removing temporary file '#{tmp}': #{inspect(other)}"
+      end
+
+      {cmd, args} = apply(__MODULE__, encoder, [from, tmp])
       %{status: 0} = Porcelain.exec(cmd, args)
+      File.rename!(tmp, to)
       Logger.debug("finished recoding to '#{to}'")
 
-      Logger.debug("removing #{from}")
-      # File.rm!(from)
+      if keep do
+        Logger.debug("removing #{from}")
+        File.rm!(from)
+      end
     end
 
     Agent.update(__MODULE__, fn state -> %{state | recoding: false} end)
@@ -100,6 +98,7 @@ defmodule Reelmagic.Encoder do
   end
 
   def to(from), do: "#{Path.rootname(from)}.mp4"
+  def tmp(from), do: "#{Path.rootname(from)}.tmp.mp4"
 
   def mencoder(from, to) do
     {"mencoder",
