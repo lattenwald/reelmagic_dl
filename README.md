@@ -12,6 +12,24 @@ reelmagic_dl.ex --playlist <playlist_id> --to <directory>
 
 This application downloads videos from playlist and recodes them to something:720 video, as reelmagic videos quality is not high enough to justify 1080 or 4k.
 
+All availale options:
+
+```bash
+$ reelmagic_dl.ex -h
+Usage: `reelmagic_dl.ex --playlist 78hpp7h24y --to 'Focus on Rings' --concurrency 3`
+
+Options:
+
+  --help -h -- show this help
+  --playlist -p [string] -- required, Wistia playlist ID
+  --to -t [path] -- required, directory to save videos into
+  --concurrency -c [int] -- optional, number of videos to be downloaded simultaneously, default 3
+  --keep -k -- keep original files, which by default are removed after recoding
+  --no-recode -- optional, don't recode, just download videos
+  --ffmpeg or --mencoder -- choose one of mencoder (with x264 & ac3) or ffmpeg (with xvid & ac3), default is ffmpeg
+
+```
+
 ## Installation
 
 Copy `reelmagic_dl.ex` to somewhere in `$PATH`, or install compile from source.
