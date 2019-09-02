@@ -86,7 +86,7 @@ defmodule Reelmagic.Encoder do
       File.rename!(tmp, to)
       Logger.debug("finished recoding to '#{to}'")
 
-      if keep do
+      if !keep do
         Logger.debug("removing #{from}")
         File.rm!(from)
       end
