@@ -1,13 +1,13 @@
 defmodule Reelmagic.Encoder do
   require Logger
 
-  defstruct queue: nil, recoding: false, waiter: nil
+  defstruct queue: nil, recoding: false, waiter: nil, encoder: nil
 
-  def start_link(),
+  def start_link(encoder),
     do:
       Agent.start_link(
         fn ->
-          %__MODULE__{queue: :queue.new()}
+          %__MODULE__{queue: :queue.new(), encoder: encoder}
         end,
         name: __MODULE__
       )
@@ -67,6 +67,7 @@ defmodule Reelmagic.Encoder do
 
   def recode!(from) do
     to = to(from)
+    encoder = Agent.get(__MODULE__, fn %{encoder: e} -> e end)
 
     skip =
       if File.exists?(to) do
@@ -85,35 +86,12 @@ defmodule Reelmagic.Encoder do
     if !skip do
       Logger.debug("recoding '#{from} to '#{to}")
 
-      %{status: 0} =
-        Porcelain.exec(
-          "mencoder",
-          [
-            from,
-            "-idx",
-            "-oac",
-            "lavc",
-            "-ovc",
-            "x264",
-            "-x264encopts",
-            "threads=4:log=0",
-            "-lavcopts",
-            "acodec=ac3",
-            "-vf",
-            "scale=-2:720",
-            "-of",
-            "lavf",
-            "-lavfopts",
-            "format=mpg",
-            "-o",
-            to
-          ]
-        )
-
+      {cmd, args} = apply(__MODULE__, encoder, [from, to])
+      %{status: 0} = Porcelain.exec(cmd, args)
       Logger.debug("finished recoding to '#{to}'")
 
       Logger.debug("removing #{from}")
-      File.rm!(from)
+      # File.rm!(from)
     end
 
     Agent.update(__MODULE__, fn state -> %{state | recoding: false} end)
@@ -122,4 +100,45 @@ defmodule Reelmagic.Encoder do
   end
 
   def to(from), do: "#{Path.rootname(from)}.mp4"
+
+  def mencoder(from, to) do
+    {"mencoder",
+     [
+       from,
+       "-idx",
+       "-oac",
+       "lavc",
+       "-ovc",
+       "x264",
+       "-x264encopts",
+       "threads=4:log=0",
+       "-lavcopts",
+       "acodec=ac3",
+       "-vf",
+       "scale=-2:720",
+       "-of",
+       "lavf",
+       "-lavfopts",
+       "format=mpg",
+       "-o",
+       to
+     ]}
+  end
+
+  def ffmpeg(from, to) do
+    {"ffmpeg",
+     [
+       "-i",
+       from,
+       "-vcodec",
+       "libxvid",
+       "-acodec",
+       "ac3",
+       "-async",
+       "1",
+       "-vf",
+       "scale=1280:-2",
+       to
+     ]}
+  end
 end

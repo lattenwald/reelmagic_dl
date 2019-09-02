@@ -2,12 +2,19 @@ defmodule Reelmagic do
   require Logger
 
   def run(opts) do
-    Reelmagic.Encoder.start_link()
-
     playlist = opts[:playlist]
     dir = opts[:to]
     concurrency = opts[:concurrency]
     recode = opts[:recode]
+
+    encoder =
+      cond do
+        opts[:ffmpeg] -> :ffmpeg
+        opts[:mencoder] -> :mencoder
+        true -> raise "No encoder specified"
+      end
+
+    Reelmagic.Encoder.start_link(encoder)
 
     if File.exists?(dir) do
       %{type: type} = File.stat!(dir)

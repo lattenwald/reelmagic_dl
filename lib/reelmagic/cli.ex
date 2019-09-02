@@ -11,6 +11,7 @@ defmodule Reelmagic.CLI do
     --to -t [path] -- required, directory to save videos into
     --concurrency -c [int] -- optional, number of videos to be downloaded simultaneously, default 3
     --no-recode -- optional, don't recode, just download videos
+    --ffmpeg or --mencoder -- choose one of mencoder (with x264 & ac3) or ffmpeg (with xvid & ac3), default is ffmpeg
   """
 
   @default_concurrency 3
@@ -30,7 +31,9 @@ defmodule Reelmagic.CLI do
           playlist: :string,
           to: :string,
           concurrency: :integer,
-          recode: :boolean
+          recode: :boolean,
+          mencoder: :boolean,
+          ffmpeg: :boolean
         ],
         aliases: [h: :help, p: :playlist, t: :to, c: :concurrency, r: :recode]
       )
@@ -52,6 +55,7 @@ defmodule Reelmagic.CLI do
         parsed
         |> Keyword.put_new(:concurrency, @default_concurrency)
         |> Keyword.put_new(:recode, true)
+        |> Keyword.put(:ffmpeg, !parsed[:mencoder])
     end
   end
 
